@@ -11,25 +11,18 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-using System;
-using System.Collections.Generic;
-using Moreland.AspNetCore.ApiKeyAuthentication;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
-namespace Moreland.AspNetCore.SampleApi.Data
+namespace Moreland.AspNetCore.SampleApi.Authorization
 {
-    public static class TestApiKeys
+    public sealed class RequiresCreateAuthorizationHandler : AuthorizationHandler<CreateRequirement>
     {
-        public static IEnumerable<ApiKey> Keys
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, CreateRequirement requirement)
         {
-            get
-            {
-                yield return new ApiKey(new Guid("D0944969-D442-4183-8F7B-05DFA6915E4B"), "resource1", "B47900BB1C704100B60063D1B84B287F",
-                    new DateTime(2019, 06, 01), new[] {"read", "write"});
-                yield return new ApiKey(new Guid("DF17DF48-EB48-46A7-8566-1E243284BCDB"), "resource1", "BE2E4B48DE6D4277BD17EA52884E380B",
-                    new DateTime(2019, 08, 01), new[] {"manage", "read"});
-                yield return new ApiKey(new Guid("CC6EBE75-F2C9-4DE2-82AA-66AFB3B8D492"), "resource1", "0C1CE9B860B242FBA5FDF277E65CCCE4",
-                    new DateTime(2020, 01, 01), new[] {"manage", "create", "read", "update", "delete"});
-            }
+            if (context.User.IsInRole("create")) // usually this would belong in an enum or static class not hard coded
+                context.Succeed(requirement);
+            return Task.CompletedTask;
         }
     }
 }

@@ -6,13 +6,13 @@
 	},
 	"item": [
 		{
-			"name": "https://localhost:44308/appmanager/D0944969-D442-4183-8F7B-05DFA6915E4B",
+			"name": "Authorized AppManager Get",
 			"request": {
 				"method": "GET",
 				"header": [
 					{
 						"key": "X-Api-Key",
-						"value": "0C1CE9B860B242FBA5FDF277E65CCCE4",
+						"value": "B47900BB1C704100B60063D1B84B287F",
 						"type": "text"
 					}
 				],
@@ -32,13 +32,74 @@
 			"response": []
 		},
 		{
-			"name": "https://localhost:44308/appmanager",
+			"name": "Authorized Create App",
 			"request": {
 				"method": "POST",
 				"header": [
 					{
 						"key": "X-Api-Key",
 						"value": "0C1CE9B860B242FBA5FDF277E65CCCE4",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"owner\":\"new-app\",\"roles\":[\"manage\", \"delete\", \"read\",\"write\"]}"
+				},
+				"url": {
+					"raw": "https://localhost:44308/appmanager",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44308",
+					"path": [
+						"appmanager"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Unauthorized AppManager Get (doesn't match policy)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Api-Key",
+						"value": "B47900BB1C704100B60063D1B84B287F",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:44308/appmanager/D0944969-D442-4183-8F7B-05DFA6915E4B",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44308",
+					"path": [
+						"appmanager",
+						"D0944969-D442-4183-8F7B-05DFA6915E4B"
+					]
+				},
+				"description": "unauthorized get due to policy"
+			},
+			"response": []
+		},
+		{
+			"name": "Unauthorized Create App (doesn't match policy)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Api-Key",
+						"value": "B47900BB1C704100B60063D1B84B287F",
 						"type": "text"
 					},
 					{

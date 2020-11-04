@@ -12,10 +12,9 @@
 // 
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moreland.AspNetCore.ApiKeyAuthentication;
@@ -26,6 +25,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
 {
     [ApiController]
     [Route("AppManager")]
+    [Authorize(Policy = "RequiresManage")]
     public class AppManagerController : ControllerBase
     {
         private readonly IApiKeyRepository _apiKeyRepository;
@@ -51,16 +51,13 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
 
             var app = await _apiKeyRepository.GetByIdAsync(id.Value);
 
-            var newApp = new CreateAppModel {Owner = app.Owner, Roles = app.Roles.ToList()};
-
-            var serialized = JsonSerializer.Serialize(newApp, new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase, IgnoreNullValues = true});
-
             return app.IsNullorEmpty()
                 ? (ActionResult<string>) NotFound()
                 : Ok(app.Key);
         }
 
         [HttpPost]
+        [Authorize(Policy = "CrudManager")]
         public async Task<ActionResult> CreateApp(CreateAppModel model)
         {
             if (!ModelState.IsValid)
@@ -83,7 +80,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
 
             return app.IsNullorEmpty()
                 ? (ActionResult)new StatusCodeResult(500) // error should've been logged in create
-                : Created(new Uri($"/App/{app.Id}"), app.Key);
+                : Created(new Uri($"/App/{app.Id}", UriKind.Relative), app.Key);
         }
     }
 }
