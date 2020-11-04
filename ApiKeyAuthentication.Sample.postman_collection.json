@@ -1,0 +1,70 @@
+{
+	"info": {
+		"_postman_id": "99271827-9b27-42f6-ab4c-4d85def385a2",
+		"name": "ApiKeyAuthentication.Sample",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "https://localhost:44308/appmanager/D0944969-D442-4183-8F7B-05DFA6915E4B",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Api-Key",
+						"value": "0C1CE9B860B242FBA5FDF277E65CCCE4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:44308/appmanager/D0944969-D442-4183-8F7B-05DFA6915E4B",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44308",
+					"path": [
+						"appmanager",
+						"D0944969-D442-4183-8F7B-05DFA6915E4B"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://localhost:44308/appmanager",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Api-Key",
+						"value": "0C1CE9B860B242FBA5FDF277E65CCCE4",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"owner\":\"new-app\",\"roles\":[\"manage\", \"delete\", \"read\",\"write\"]}"
+				},
+				"url": {
+					"raw": "https://localhost:44308/appmanager",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44308",
+					"path": [
+						"appmanager"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
