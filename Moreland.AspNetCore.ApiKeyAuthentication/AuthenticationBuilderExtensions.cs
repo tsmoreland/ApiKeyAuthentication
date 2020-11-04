@@ -22,6 +22,13 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
     public static class AuthenticationBuilderExtensions
     {
         /// <summary>
+        /// Add Api-Key support with default scheme and empty display name 
+        /// and empty options
+        /// </summary>
+        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder builder) =>
+            builder.AddApiKeySupport(ApiKeyDefaults.AuthenticationScheme, displayName: null, options => { });
+
+        /// <summary>
         /// Add Api-Key support with default scheme and empty display name using
         /// provided <paramref name="options"/>
         /// </summary>

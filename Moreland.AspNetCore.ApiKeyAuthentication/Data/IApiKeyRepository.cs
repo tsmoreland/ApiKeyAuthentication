@@ -36,21 +36,21 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         /// <summary>
         /// Remove by Id
         /// </summary>
-        public void RemoveByIdAsync(Guid id);
+        public Task RemoveByIdAsync(Guid id);
         /// <summary>
         /// Remove by Key
         /// </summary>
-        public void RemoveByKeyAsync(string key);
+        public Task RemoveByKeyAsync(string key);
 
         /// <summary>
         /// Remove all Api-Key entries for <paramref name="owner"/>
         /// </summary>
         /// <param name="owner"></param>
-        public void RemoveAllForOwnerAsync(string owner);
+        public Task RemoveAllForOwnerAsync(string owner);
 
         /// <summary>
-        /// Create a new Api-Key for <paramref name="owner"/> with <paramref name="scopes"/>
+        /// Create a new Api-Key for <paramref name="owner"/> with <paramref name="roles"/>
         /// </summary>
-        public Task<ApiKey> CreateAsync(string owner, IEnumerable<string> scopes);
+        public Task<ApiKey> CreateAsync(string owner, IEnumerable<string> roles);
     }
 }

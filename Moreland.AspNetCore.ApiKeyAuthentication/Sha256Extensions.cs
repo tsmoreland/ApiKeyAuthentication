@@ -11,28 +11,41 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-using Microsoft.AspNetCore.Authentication;
+
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
-    public class ApiKeyOptions : AuthenticationSchemeOptions
+    internal static class Sha256Extensions
     {
-        /// <summary>
-        /// Unique Name for authentication scheme
-        /// </summary>
-        public static string DefaultScheme => ApiKeyDefaults.AuthenticationScheme;
+        public static string ToSha256Hash(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
 
-        /// <summary>
-        /// Default Scheme by another name
-        /// </summary>
-        public string Scheme => DefaultScheme;
+            var encoder = new UTF8Encoding();
+            var salt = CreateSalt();
+            var saltedValue = $"{salt}value";
 
-        /// <summary>
-        /// Header Name for Api-Key
-        /// </summary>
-        public string HeaderName { get; set; } = ApiKeyDefaults.HeaderName;
+            return ToString(new SHA256Managed().ComputeHash(encoder.GetBytes(saltedValue)));
 
-        public string AuthenticationType { get; set; } = ApiKeyDefaults.AuthenticationType;
-
+            static string CreateSalt()
+            {
+                var random = new RNGCryptoServiceProvider();
+                var salt = new byte[32];
+                random.GetNonZeroBytes(salt);
+                return Convert.ToBase64String(salt);
+            }
+            static string ToString(IEnumerable<byte> bytes)
+            {
+                var builder = new StringBuilder();
+                foreach (var v in bytes)
+                    builder.Append(v.ToString("X2"));
+                return builder.ToString();
+            }
+        }
     }
 }

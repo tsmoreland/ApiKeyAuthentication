@@ -29,22 +29,37 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
     {
         private readonly IApiKeyRepository _repository;
 
+        private static readonly Lazy<JsonSerializerOptions> _serializerOptions = 
+            new Lazy<JsonSerializerOptions>(() =>
+                new JsonSerializerOptions 
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase, 
+                    IgnoreNullValues = true
+                });
+
+        private static JsonSerializerOptions SerializerOptions => _serializerOptions.Value;
+
         /// <inheritdoc cref="AuthenticationHandler{ApiKeyOptions}"/>
         /// <exception cref="ArgumentNullException">
         /// if <paramref name="repository"/> is null
         /// </exception>
         public ApiKeyHandler(
-            IOptionsMonitor<ApiKeyOptions> options, 
-            ILoggerFactory logger, 
-            UrlEncoder urlEncoder, 
+            IOptionsMonitor<ApiKeyOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder urlEncoder,
             ISystemClock systemClock,
             IApiKeyRepository repository)
-            : base(options, logger, urlEncoder, systemClock) 
+            : base(options, logger, urlEncoder, systemClock)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         private string HeaderName => Options.HeaderName;
+
+        private static string? BuildResponse(int status, string title, string detail) =>
+            JsonSerializer.Serialize(
+                new {title, detail, status, type = $"https://httpstatuses.com/{status}"},
+                SerializerOptions);
 
 
         /// <inheritdoc cref="HandleAuthenticateAsync"/>
@@ -65,10 +80,18 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
 
             var apiKeyEntity = await _repository.GetByKeyAsync(apiKey);
             if (!apiKeyEntity.IsNullorEmpty())
-                return AuthenticateResult.Success(apiKeyEntity.ToAuthenticationTicket(Options.DefaultScheme, Options.AuthenticationType));
+                return AuthenticateResult.Success(apiKeyEntity.ToAuthenticationTicket(Options.Scheme, Options.AuthenticationType));
 
             Logger.LogWarning($"Api-Key {apiKey} not found");
             return AuthenticateResult.Fail(new KeyNotFoundException("Unauthorized access."));
+        }
+
+        /// <inheritdoc />
+        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = 401;
+            Response.ContentType = "application/problems+json";
+            await Response.WriteAsync(BuildResponse(401, "Unauthorized", "You are not authorized to view this resource"));
         }
 
         /// <inheritdoc />
@@ -76,22 +99,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         {
             Response.StatusCode = 403;
             Response.ContentType = "application/problems+json";
-
-            var responseData = JsonSerializer.Serialize(
-                new
-                {
-                    title = "Forbidden",
-                    detail = "You are not authorized to view this resource",
-                    status = 403,
-                    type = "https://httpstatuses.com/403"
-                }, new JsonSerializerOptions 
-                { 
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase, 
-                    IgnoreNullValues = true
-                });
-
-            await Response.WriteAsync(responseData);
-
+            await Response.WriteAsync(BuildResponse(403, "Forbidden", "You are not authorized to view this resource"));
         }
     }
 }
