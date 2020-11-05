@@ -5,6 +5,8 @@
     <nullable>enable</nullable>
     <langversion>8</langversion>
     <OutputType>Library</OutputType>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../ApiKeyAuthenticator.snk.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
 </Project>
