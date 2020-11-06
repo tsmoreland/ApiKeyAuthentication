@@ -19,33 +19,47 @@ using System.Text;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
-    internal static class Sha256Extensions
+    internal static class EncryptExtensions
     {
         public static string ToSha256Hash(this string value)
         {
             if (string.IsNullOrEmpty(value))
                 return value;
 
+            // this could be turned into a function similar to salted Sha512 but to
+            // compare hashes we'd need to return the salt back or pre-pend it with a known length
             var encoder = new UTF8Encoding();
             var salt = CreateSalt();
             var saltedValue = $"{salt}value";
 
             return ToString(new SHA256Managed().ComputeHash(encoder.GetBytes(saltedValue)));
+        }
 
-            static string CreateSalt()
-            {
-                var random = new RNGCryptoServiceProvider();
-                var salt = new byte[32];
-                random.GetNonZeroBytes(salt);
-                return Convert.ToBase64String(salt);
-            }
-            static string ToString(IEnumerable<byte> bytes)
-            {
-                var builder = new StringBuilder();
-                foreach (var v in bytes)
-                    builder.Append(v.ToString("X2"));
-                return builder.ToString();
-            }
+        public static string ToSaltedSha512HashOrEmpty(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            var encoder = new UTF8Encoding();
+            var salt = CreateSalt();
+            var saltedValue = $"{salt}value";
+
+            return salt + ToString(new SHA512Managed().ComputeHash(encoder.GetBytes(saltedValue)));
+        }
+
+        private static string CreateSalt()
+        {
+            var random = new RNGCryptoServiceProvider();
+            var salt = new byte[32];
+            random.GetNonZeroBytes(salt);
+            return Convert.ToBase64String(salt);
+        }
+        private static string ToString(IEnumerable<byte> bytes)
+        {
+            var builder = new StringBuilder();
+            foreach (var v in bytes)
+                builder.Append(v.ToString("X2"));
+            return builder.ToString();
         }
     }
 }

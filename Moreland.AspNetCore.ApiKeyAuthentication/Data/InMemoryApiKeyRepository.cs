@@ -48,17 +48,18 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         }
 
         /// <inheritdoc/>
-        public Task<ApiKey> CreateAsync(string owner, IEnumerable<string> roles)
+        public Task<(Guid id, string key)> CreateAsync(string owner, IEnumerable<string> roles)
         {
-            var apiKey = new ApiKey(Guid.NewGuid(), owner, Guid.NewGuid().ToString("N").ToSha256Hash(), DateTime.UtcNow, roles);
+            var apiKey = ApiKey.GenerateKey();
+            var apiKeyEntry = new ApiKey(Guid.NewGuid(), owner, apiKey, DateTime.UtcNow, roles);
 
             lock (_locker)
             {
-                _apiKeyById[apiKey.Id] = apiKey;
-                _idByKey[apiKey.Key] = apiKey.Id;
+                _apiKeyById[apiKeyEntry.Id] = apiKeyEntry;
+                _idByKey[apiKeyEntry.Key] = apiKeyEntry.Id;
             }
 
-            return Task.FromResult(apiKey);
+            return Task.FromResult((apiKeyEntry.Id, apiKey));
         }
 
         /// <inheritdoc/>
@@ -75,10 +76,12 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         public Task<ApiKey> GetByKeyAsync(string key)
         {
             lock (_locker)
-                return Task.FromResult(_idByKey.TryGetValue(key, out var id) && 
+            {
+                return Task.FromResult(_idByKey.TryGetValue(key, out var id) &&
                                        _apiKeyById.TryGetValue(id, out var apiKey)
                     ? apiKey
                     : ApiKey.Empty);
+            }
         }
 
         /// <inheritdoc/>

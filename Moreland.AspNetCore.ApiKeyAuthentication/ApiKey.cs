@@ -15,32 +15,55 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
     /// <summary>
     /// Api Key Data Structure
     /// </summary>
-    public sealed class ApiKey
+    public sealed class ApiKey : IEquatable<ApiKey>
     {
         /// <summary>
         /// Instantiates a new instance of the <see cref="ApiKey"/> class.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="owner"></param>
-        /// <param name="key"></param>
-        /// <param name="created"></param>
-        /// <param name="scopes"></param>
-        public ApiKey(Guid id, string owner, string key, DateTime created, IEnumerable<string> scopes)
+        /// <param name="owner"/>
+        /// <param name="key"/>
+        /// <param name="created"/>
+        /// <param name="roles"/>
+        public ApiKey(string owner, string key, DateTime created, IEnumerable<string> roles)
+            : this(Guid.NewGuid(), owner, key, created, roles)
+        {
+        }
+
+        /// <summary>
+        /// Instantiates a new instance of the <see cref="ApiKey"/> class.
+        /// </summary>
+        /// <param name="id"/>
+        /// <param name="owner"/>
+        /// <param name="key"/>
+        /// <param name="created"/>
+        /// <param name="roles"/>
+        /// <remarks>
+        /// This method should be made internal and used for test purposes or test-data purposes
+        /// </remarks>
+        internal ApiKey(Guid id, string owner, string key, DateTime created, IEnumerable<string> roles)
         {
             Id = id;
             Owner = owner ?? string.Empty;
             Key = key ?? string.Empty;
             Created = created;
 
-            var claimsList = new List<string>(scopes ?? Array.Empty<string>());
+            var claimsList = new List<string>(roles ?? Array.Empty<string>());
             Roles = new ReadOnlyCollection<string>(claimsList);
         }
+
+        /// <summary>
+        /// Creates a new ApiKey with given id, intended for test data
+        /// </summary>
+        public static ApiKey CreateTestData(Guid id, string owner, string key, DateTime created,
+            IEnumerable<string> roles) =>
+            new ApiKey(id, owner, key, created, roles);
 
         /// <summary>
         /// Private Constructor to allow use of Entity Framework
@@ -82,13 +105,30 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// </summary>
         public static ApiKey Empty { get; } = new ApiKey();
 
+        /// <summary>
+        /// Returns <c>true</c> is ApiKey is empty
+        /// </summary>
+        public bool IsEmpty => 
+            Id == Guid.Empty && string.IsNullOrEmpty(Key);
+
+        /// <summary>
+        /// Generates a new api-key
+        /// </summary>
+        public static string GenerateKey() =>
+            Guid.NewGuid().ToString("N").ToSha256Hash();
+
+        /// <inheritdoc/>
+        public bool Equals([AllowNull] ApiKey other) =>
+            !(other is null) && Id.Equals(other.Id);
+
         /// <inheritdoc cref="object.Equals(object?)"/>
         public override bool Equals(object? obj) =>
-            obj is ApiKey key && Id.Equals(key.Id);
+            Equals(obj as ApiKey);
 
         /// <inheritdoc cref="object.GetHashCode"/>
         public override int GetHashCode() =>
             // ReSharper disable once NonReadonlyMemberInGetHashCode -- Id can only be change
             2108858624 + Id.GetHashCode();
+
     }
 }

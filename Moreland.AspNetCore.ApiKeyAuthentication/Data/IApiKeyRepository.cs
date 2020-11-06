@@ -51,6 +51,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         /// <summary>
         /// Create a new Api-Key for <paramref name="owner"/> with <paramref name="roles"/>
         /// </summary>
-        public Task<ApiKey> CreateAsync(string owner, IEnumerable<string> roles);
+        /// <returns>The generated Api-Key</returns>
+        public Task<(Guid id, string key)> CreateAsync(string owner, IEnumerable<string> roles);
     }
 }
