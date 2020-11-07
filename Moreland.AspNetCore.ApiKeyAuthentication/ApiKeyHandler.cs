@@ -14,31 +14,45 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moreland.AspNetCore.ApiKeyAuthentication.Data;
+using Moreland.AspNetCore.ApiKeyAuthentication.Helpers;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
     internal static class ApiKeyHandler
     {
-        public static Lazy<JsonSerializerOptions> SerializerOptions { get; } =
+        private static readonly Lazy<XmlSerializer> _xmlSerializer =
+            new Lazy<XmlSerializer>(() =>
+                new XmlSerializer(typeof(ProblemDetails)));
+        private static readonly Lazy<JsonSerializerOptions> _jsonSerializerOptions =
             new Lazy<JsonSerializerOptions>(() =>
                 new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase, IgnoreNullValues = true});
+
+        public static JsonSerializerOptions SerializerOptions => _jsonSerializerOptions.Value;
+        public static XmlSerializer XmlSerializer => _xmlSerializer.Value;
+
     }
 
 
-    public sealed class ApiKeyHandler<TExternalId> : AuthenticationHandler<ApiKeyOptions>
+    /// <summary>
+    /// Handles X-Api-Key Authentication
+    /// </summary>
+    /// <typeparam name="TConsumerId"></typeparam>
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public sealed class ApiKeyHandler<TConsumerId> : AuthenticationHandler<ApiKeyOptions>
     {
-        private readonly IApiKeyRepository<TExternalId> _repository;
-
-
-        private static JsonSerializerOptions SerializerOptions => ApiKeyHandler.SerializerOptions.Value;
+        private readonly IApiKeyRepository<TConsumerId> _repository;
 
         /// <inheritdoc cref="AuthenticationHandler{ApiKeyOptions}"/>
         /// <exception cref="ArgumentNullException">
@@ -49,7 +63,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
             ILoggerFactory logger,
             UrlEncoder urlEncoder,
             ISystemClock systemClock,
-            IApiKeyRepository<TExternalId> repository)
+            IApiKeyRepository<TConsumerId> repository)
             : base(options, logger, urlEncoder, systemClock)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -57,12 +71,42 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
 
         private string HeaderName => Options.HeaderName;
 
-        private static string? BuildResponse(int status, string title, string detail) =>
+        private string? BuildJsonResponse(int status, string title, string detail) =>
             JsonSerializer.Serialize(
-                new {title, detail, status, type = $"https://httpstatuses.com/{status}"},
-                SerializerOptions);
+                GetDetails(status, title, detail, Request.Path),
+                ApiKeyHandler.SerializerOptions);
 
+        private string? BuildXmlResponse(int status, string title, string detail)
+        {
+            try
+            {
+                var details = GetDetails(status, title, detail, Request.Path);
+                using var writer = new EncodedStringWriter(Encoding.UTF8);
+                ApiKeyHandler.XmlSerializer.Serialize(writer, details);
+                return writer.ToString();
+            }
+            catch (Exception e) when (e is InvalidOperationException)
+            {
+                Logger.LogError(e, "Unable to serialize problem detail");
+                return null;
+            }
+        }
 
+        private static ProblemDetails GetDetails(int status, string title, string detail, string instance) =>
+            new ProblemDetails 
+            {
+                Title = title, 
+                Detail = detail, 
+                Status = status, 
+                Instance = instance,
+                Type = $"https://httpstatuses.com/{status}"
+            };
+        private async Task WriteResponse(string responseType, Func<int, string, string, string?> buildResponse, int status, string title, string detail)
+        {
+            Response.ContentType = responseType;
+            await Response.WriteAsync(buildResponse(status, title,detail));
+        }
+ 
         /// <inheritdoc cref="HandleAuthenticateAsync"/>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -91,16 +135,32 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
             Response.StatusCode = 401;
-            Response.ContentType = "application/problems+json";
-            await Response.WriteAsync(BuildResponse(401, "Unauthorized", "You are not authorized to view this resource"));
+            switch (HttpRequestHelpers.GetResponseTypeFromRequest(Request))
+            {
+                case MediaTypeNames.Application.Xml:
+                    await WriteResponse("application/problems+xml", BuildXmlResponse, 403, "Unauthorized", "You are not authorized to view this resource");
+                    break;
+                default:
+                    await WriteResponse("application/problems+json", BuildJsonResponse, 403, "Unauthorized", "You are not authorized to view this resource");
+                    break;
+            }
         }
 
         /// <inheritdoc />
         protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
         {
             Response.StatusCode = 403;
-            Response.ContentType = "application/problems+json";
-            await Response.WriteAsync(BuildResponse(403, "Forbidden", "You are not authorized to view this resource"));
+
+            switch (HttpRequestHelpers.GetResponseTypeFromRequest(Request))
+            {
+                case MediaTypeNames.Application.Xml:
+                    await WriteResponse("application/problems+xml", BuildXmlResponse, 401, "Forbidden", "You are not authorized to view this resource");
+                    break;
+                default:
+                    await WriteResponse("application/problems+json", BuildJsonResponse, 401, "Forbidden", "You are not authorized to view this resource");
+                    break;
+            }
         }
-    }
+
+   }
 }

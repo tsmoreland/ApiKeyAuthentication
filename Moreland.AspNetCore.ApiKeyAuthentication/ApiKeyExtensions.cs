@@ -25,21 +25,21 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
     {
         /// <summary>
         /// Returns <c>true</c> if <paramref name="apiKey"/> is null,
-        /// equals <see cref="ApiKey{TExternalId}.Empty"/> or its id is an empty
+        /// equals <see cref="ApiKey{TConsumerId}.Empty"/> or its id is an empty
         /// GUID
         /// </summary>
-        public static bool IsNullorEmpty<TExternalId>(this ApiKey<TExternalId>? apiKey) =>
+        public static bool IsNullorEmpty<TConsumerId>(this ApiKey<TConsumerId>? apiKey) =>
             apiKey == null ||
-            ReferenceEquals(apiKey, ApiKey.Empty<TExternalId>()) ||
+            ReferenceEquals(apiKey, ApiKey.Empty<TConsumerId>()) ||
             apiKey.Id == Guid.Empty;
 
-        public static AuthenticationTicket ToAuthenticationTicket<TExternalId>(this ApiKey<TExternalId> apiKey, string scheme, string authenticationType)
+        public static AuthenticationTicket ToAuthenticationTicket<TConsumerId>(this ApiKey<TConsumerId> apiKey, string scheme, string authenticationType)
         {
             if (apiKey.IsNullorEmpty())
                 throw new ArgumentException("Invalid Api-Key", nameof(apiKey));
 
             var claims = Lists
-                .From(new Claim(ClaimTypes.Name, apiKey.Owner))
+                .From(new Claim(ClaimTypes.Name, apiKey.Consumer))
                 .AppendRange(apiKey.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             return new AuthenticationTicket(

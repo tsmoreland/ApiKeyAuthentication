@@ -21,23 +21,23 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
     /// <summary>
     /// In Memory implementation of Api-Key repository
     /// </summary>
-    public sealed class InMemoryApiKeyRepository<TExternalId> : IApiKeyRepository<TExternalId>
+    public sealed class InMemoryApiKeyRepository<TConsumerId> : IApiKeyRepository<TConsumerId>
     {
         private readonly object _locker;
-        private readonly Dictionary<Guid, ApiKey<TExternalId>> _apiKeyById;
+        private readonly Dictionary<Guid, ApiKey<TConsumerId>> _apiKeyById;
         private readonly Dictionary<string, Guid> _idByKey;
 
         public InMemoryApiKeyRepository()
         {
             _locker = new object();
-            _apiKeyById = new Dictionary<Guid, ApiKey<TExternalId>>();
+            _apiKeyById = new Dictionary<Guid, ApiKey<TConsumerId>>();
             _idByKey = new Dictionary<string, Guid>();
         }
 
-        public InMemoryApiKeyRepository(IEnumerable<ApiKey<TExternalId>> apiKeys)
+        public InMemoryApiKeyRepository(IEnumerable<ApiKey<TConsumerId>> apiKeys)
         {
             _locker = new object();
-            _apiKeyById = new Dictionary<Guid, ApiKey<TExternalId>>();
+            _apiKeyById = new Dictionary<Guid, ApiKey<TConsumerId>>();
             _idByKey = new Dictionary<string, Guid>();
 
             foreach (var apiKey in apiKeys)
@@ -48,10 +48,10 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         }
 
         /// <inheritdoc/>
-        public Task<(Guid id, string key)> CreateAsync(string owner, TExternalId externalId, IEnumerable<string> roles)
+        public Task<(Guid id, string key)> CreateAsync(string owner, TConsumerId externalId, IEnumerable<string> roles)
         {
             var apiKey = ApiKey.GenerateKey();
-            var apiKeyEntry = new ApiKey<TExternalId>(Guid.NewGuid(), owner, apiKey, externalId, DateTime.UtcNow, roles);
+            var apiKeyEntry = new ApiKey<TConsumerId>(Guid.NewGuid(), owner, apiKey, externalId, DateTime.UtcNow, roles);
 
             lock (_locker)
             {
@@ -63,24 +63,24 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         }
 
         /// <inheritdoc/>
-        public Task<ApiKey<TExternalId>> GetByIdAsync(Guid id)
+        public Task<ApiKey<TConsumerId>> GetByIdAsync(Guid id)
         {
             lock (_locker)
                 return Task.FromResult(_apiKeyById.TryGetValue(id, out var apiKey)
                     ? apiKey
-                    : ApiKey.Empty<TExternalId>());
+                    : ApiKey.Empty<TConsumerId>());
 
         }
 
         /// <inheritdoc/>
-        public Task<ApiKey<TExternalId>> GetByKeyAsync(string key)
+        public Task<ApiKey<TConsumerId>> GetByKeyAsync(string key)
         {
             lock (_locker)
             {
                 return Task.FromResult(_idByKey.TryGetValue(key, out var id) &&
                                        _apiKeyById.TryGetValue(id, out var apiKey)
                     ? apiKey
-                    : ApiKey.Empty<TExternalId>());
+                    : ApiKey.Empty<TConsumerId>());
             }
         }
 
@@ -90,7 +90,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
             lock (_locker)
             {
                 var idsToRemove = _apiKeyById.Values
-                    .Where(apiKey => apiKey.Owner == owner)
+                    .Where(apiKey => apiKey.Consumer == owner)
                     .Select(apiKey => apiKey.Id)
                     .ToList();
                 var keysToRemove = idsToRemove.Select(id => _apiKeyById[id].Key).ToList();

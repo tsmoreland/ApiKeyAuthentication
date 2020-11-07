@@ -24,9 +24,9 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Creates a new ApiKey with given id, intended for test data
         /// </summary>
-        public static ApiKey<TExternalId> CreateTestData<TExternalId>(Guid id, string owner, string key, TExternalId externalId, DateTime created,
+        public static ApiKey<TConsumerId> CreateTestData<TConsumerId>(Guid id, string consumer, string key, TConsumerId externalId, DateTime created,
             IEnumerable<string> roles) =>
-            new ApiKey<TExternalId>(id, owner, key, externalId, created, roles);
+            new ApiKey<TConsumerId>(id, consumer, key, externalId, created, roles);
 
         /// <summary>
         /// Generates a new api-key
@@ -38,46 +38,46 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Empty Representation
         /// </summary>
-        public static ApiKey<TExternalId> Empty<TExternalId>() => ApiKey<TExternalId>.Empty;
+        public static ApiKey<TConsumerId> Empty<TConsumerId>() => ApiKey<TConsumerId>.Empty;
 
     }
 
     /// <summary>
     /// Api Key Data Structure
     /// </summary>
-    public sealed class ApiKey<TExternalId> : IEquatable<ApiKey<TExternalId>>
+    public sealed class ApiKey<TConsumerId> : IEquatable<ApiKey<TConsumerId>>
     {
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ApiKey{TExternalId}"/> class.
+        /// Instantiates a new instance of the <see cref="ApiKey{TConsumerId}"/> class.
         /// </summary>
-        /// <param name="owner"/>
+        /// <param name="consumer"/>
         /// <param name="key"/>
         /// <param name="externalId"/>
         /// <param name="created"/>
         /// <param name="roles"/>
-        public ApiKey(string owner, string key, TExternalId externalId, DateTime created, IEnumerable<string> roles)
-            : this(Guid.NewGuid(), owner, key, externalId, created, roles)
+        public ApiKey(string consumer, string key, TConsumerId externalId, DateTime created, IEnumerable<string> roles)
+            : this(Guid.NewGuid(), consumer, key, externalId, created, roles)
         {
         }
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ApiKey{TExternalId}"/> class.
+        /// Instantiates a new instance of the <see cref="ApiKey{TConsumerId}"/> class.
         /// </summary>
         /// <param name="id"/>
-        /// <param name="owner"/>
+        /// <param name="consumer"/>
         /// <param name="key"/>
-        /// <param name="externalId"/>
+        /// <param name="consumerId"/>
         /// <param name="created"/>
         /// <param name="roles"/>
         /// <remarks>
         /// This method should be made internal and used for test purposes or test-data purposes
         /// </remarks>
-        internal ApiKey(Guid id, string owner, string key, TExternalId externalId, DateTime created, IEnumerable<string> roles)
+        internal ApiKey(Guid id, string consumer, string key, TConsumerId consumerId, DateTime created, IEnumerable<string> roles)
         {
             Id = id;
-            Owner = owner ?? string.Empty;
+            Consumer = consumer ?? string.Empty;
             Key = key ?? string.Empty;
-            ExternalId = externalId;
+            ConsumerId = consumerId;
             Created = created;
 
             var claimsList = new List<string>(roles ?? Array.Empty<string>());
@@ -100,7 +100,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Application Name of the caller
         /// </summary>
-        public string Owner { get; private set; } = string.Empty;
+        public string Consumer { get; private set; } = string.Empty;
 
         /// <summary>
         /// The Api Key
@@ -110,7 +110,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Extenal Id a link to the external identity 
         /// </summary>
-        public TExternalId ExternalId { get; set; } = default!;
+        public TConsumerId ConsumerId { get; set; } = default!;
 
         /// <summary>
         /// Creation Date/Time of the ApiKey
@@ -133,15 +133,15 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Empty Representation
         /// </summary>
-        public static ApiKey<TExternalId> Empty => new ApiKey<TExternalId>();
+        public static ApiKey<TConsumerId> Empty => new ApiKey<TConsumerId>();
 
         /// <inheritdoc/>
-        public bool Equals([AllowNull] ApiKey<TExternalId> other) =>
+        public bool Equals([AllowNull] ApiKey<TConsumerId> other) =>
             !(other is null) && Id.Equals(other.Id);
 
         /// <inheritdoc cref="object.Equals(object?)"/>
         public override bool Equals(object? obj) =>
-            Equals(obj as ApiKey<TExternalId>);
+            Equals(obj as ApiKey<TConsumerId>);
 
         /// <inheritdoc cref="object.GetHashCode"/>
         public override int GetHashCode() =>
