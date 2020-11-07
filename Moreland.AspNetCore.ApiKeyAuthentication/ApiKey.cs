@@ -29,10 +29,11 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// </summary>
         /// <param name="owner"/>
         /// <param name="key"/>
+        /// <param name="externalId"/>
         /// <param name="created"/>
         /// <param name="roles"/>
-        public ApiKey(string owner, string key, DateTime created, IEnumerable<string> roles)
-            : this(Guid.NewGuid(), owner, key, created, roles)
+        public ApiKey(string owner, string key, Guid externalId, DateTime created, IEnumerable<string> roles)
+            : this(Guid.NewGuid(), owner, key, externalId, created, roles)
         {
         }
 
@@ -42,12 +43,13 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <param name="id"/>
         /// <param name="owner"/>
         /// <param name="key"/>
+        /// <param name="externalId"/>
         /// <param name="created"/>
         /// <param name="roles"/>
         /// <remarks>
         /// This method should be made internal and used for test purposes or test-data purposes
         /// </remarks>
-        internal ApiKey(Guid id, string owner, string key, DateTime created, IEnumerable<string> roles)
+        internal ApiKey(Guid id, string owner, string key, Guid externalId, DateTime created, IEnumerable<string> roles)
         {
             Id = id;
             Owner = owner ?? string.Empty;
@@ -61,9 +63,9 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Creates a new ApiKey with given id, intended for test data
         /// </summary>
-        public static ApiKey CreateTestData(Guid id, string owner, string key, DateTime created,
+        public static ApiKey CreateTestData(Guid id, string owner, string key, Guid externalId, DateTime created,
             IEnumerable<string> roles) =>
-            new ApiKey(id, owner, key, created, roles);
+            new ApiKey(id, owner, key, externalId, created, roles);
 
         /// <summary>
         /// Private Constructor to allow use of Entity Framework

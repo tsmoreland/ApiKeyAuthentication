@@ -76,7 +76,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
             if (arrayOfRoles?.Any() != true)
                 return BadRequest();
 
-            var (id, key) = await _apiKeyRepository.CreateAsync(owner, arrayOfRoles);
+            var (id, key) = await _apiKeyRepository.CreateAsync(owner, model.AppId, arrayOfRoles);
 
             return string.IsNullOrEmpty(key) || id == Guid.Empty
                 ? (ActionResult)new StatusCodeResult(500) // error should've been logged in create

@@ -60,7 +60,6 @@ namespace Moreland.AspNetCore.SampleApi
             services.AddSingleton<IAuthorizationHandler, RequiresManageAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, RequiresCreateAuthorizationHandler>();
 
-            services.AddSingleton<IApiKeyRepository>(provider => new InMemoryApiKeyRepository(TestApiKeys.Keys));
             services
                 .AddControllers()
                 .AddJsonOptions(options =>
@@ -69,6 +68,9 @@ namespace Moreland.AspNetCore.SampleApi
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.AllowTrailingCommas = true;
                 });
+
+            services.AddSingleton<IApiKeyRepository>(provider => new InMemoryApiKeyRepository(TestApiKeys.Keys));
+            services.AddSingleton<IAppRepository>(provider => new InMemoryAppRepository(TestApps.Apps));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

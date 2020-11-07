@@ -48,10 +48,10 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication.Data
         }
 
         /// <inheritdoc/>
-        public Task<(Guid id, string key)> CreateAsync(string owner, IEnumerable<string> roles)
+        public Task<(Guid id, string key)> CreateAsync(string owner, Guid externalId, IEnumerable<string> roles)
         {
             var apiKey = ApiKey.GenerateKey();
-            var apiKeyEntry = new ApiKey(Guid.NewGuid(), owner, apiKey, DateTime.UtcNow, roles);
+            var apiKeyEntry = new ApiKey(Guid.NewGuid(), owner, apiKey, externalId, DateTime.UtcNow, roles);
 
             lock (_locker)
             {

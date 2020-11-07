@@ -12,44 +12,17 @@
 // 
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Moreland.AspNetCore.SampleApi.Models;
 
 namespace Moreland.AspNetCore.SampleApi.Data
 {
-    public sealed class AppRepository
+    public interface IAppRepository
     {
-        private readonly ConcurrentDictionary<Guid, App> _appsById;
-
-        public AppRepository()
-        {
-            _appsById = new ConcurrentDictionary<Guid, App>();
-        }
-
-        public App? Create(string name, IEnumerable<KeyValuePair<string, string>> claims)
-        {
-            var app = App.Create(name, claims);
-            return _appsById.TryAdd(app.Id, app)
-                ? app
-                : null;
-        }
-        public App? FindById(Guid id) =>
-            _appsById.TryGetValue(id, out var app)
-                ? app
-                : null;
-
-        public void Update(App app) =>
-            _appsById.AddOrUpdate(
-                app.Id, 
-                key => app, 
-                (key, oldValue) => app);
-
-        public bool Remove(App app) =>
-            app != null! && Remove(app.Id);
-
-        public bool Remove(Guid id) =>
-            _appsById.TryRemove(id, out _);
-
+        App? Create(string name, IEnumerable<KeyValuePair<string, string>> claims);
+        App? FindById(Guid id);
+        bool Remove(App app);
+        bool Remove(Guid id);
+        void Update(App app);
     }
 }

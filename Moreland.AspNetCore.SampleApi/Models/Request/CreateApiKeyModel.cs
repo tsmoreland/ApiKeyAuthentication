@@ -11,6 +11,7 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,6 +23,9 @@ namespace Moreland.AspNetCore.SampleApi.Models
         [Required]
         [MaxLength(32)]
         public string Owner { get; set; } = string.Empty;
+
+        [Required]
+        public Guid AppId { get; set; } = Guid.Empty;
 
         [Required]
         public List<string> Roles { get; set; } = new List<string>();
