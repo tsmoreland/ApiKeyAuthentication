@@ -58,7 +58,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
 
         [HttpPost]
         [Authorize(Policy = "CrudManager")]
-        public async Task<ActionResult> CreateApp(CreateAppModel model)
+        public async Task<ActionResult> CreateApp(CreateApiKeyModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();

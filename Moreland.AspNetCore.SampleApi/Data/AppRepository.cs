@@ -11,27 +11,45 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+using Moreland.AspNetCore.SampleApi.Models;
 
-namespace Moreland.AspNetCore.SampleApi.Models
+namespace Moreland.AspNetCore.SampleApi.Data
 {
-    public sealed class CreateAppModel
+    public sealed class AppRepository
     {
-        [Required]
-        [MaxLength(32)]
-        public string Owner { get; set; } = string.Empty;
+        private readonly ConcurrentDictionary<Guid, App> _appsById;
 
-        [Required]
-        public List<string> Roles { get; set; } = new List<string>();
-
-        public bool IsValid() => !string.IsNullOrWhiteSpace(Owner) && Roles.Any();
-
-        public void Deconstruct(out string owner, out List<string> roles)
+        public AppRepository()
         {
-            owner = Owner;
-            roles = Roles;
+            _appsById = new ConcurrentDictionary<Guid, App>();
         }
+
+        public App? Create(string name, IEnumerable<KeyValuePair<string, string>> claims)
+        {
+            var app = App.Create(name, claims);
+            return _appsById.TryAdd(app.Id, app)
+                ? app
+                : null;
+        }
+        public App? FindById(Guid id) =>
+            _appsById.TryGetValue(id, out var app)
+                ? app
+                : null;
+
+        public void Update(App app) =>
+            _appsById.AddOrUpdate(
+                app.Id, 
+                key => app, 
+                (key, oldValue) => app);
+
+        public bool Remove(App app) =>
+            app != null! && Remove(app.Id);
+
+        public bool Remove(Guid id) =>
+            _appsById.TryRemove(id, out _);
+
     }
 }

@@ -79,7 +79,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         public Guid Id { get; private set; } = Guid.Empty;
 
         /// <summary>
-        /// Owner (possibly a user) of the Api Key
+        /// Application Name of the caller
         /// </summary>
         public string Owner { get; private set; } = string.Empty;
 
@@ -87,6 +87,11 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// The Api Key
         /// </summary>
         public string Key { get; private set; } = string.Empty;
+
+        /// <summary>
+        /// Extenal Id a link to the external identity 
+        /// </summary>
+        public Guid ExternalId { get; set; } = Guid.Empty;
 
         /// <summary>
         /// Creation Date/Time of the ApiKey
