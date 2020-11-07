@@ -19,26 +19,49 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
+    public static class ApiKey
+    {
+        /// <summary>
+        /// Creates a new ApiKey with given id, intended for test data
+        /// </summary>
+        public static ApiKey<TExternalId> CreateTestData<TExternalId>(Guid id, string owner, string key, TExternalId externalId, DateTime created,
+            IEnumerable<string> roles) =>
+            new ApiKey<TExternalId>(id, owner, key, externalId, created, roles);
+
+        /// <summary>
+        /// Generates a new api-key
+        /// </summary>
+        public static string GenerateKey() =>
+            Guid.NewGuid().ToString("N").ToSha256Hash();
+
+
+        /// <summary>
+        /// Empty Representation
+        /// </summary>
+        public static ApiKey<TExternalId> Empty<TExternalId>() => ApiKey<TExternalId>.Empty;
+
+    }
+
     /// <summary>
     /// Api Key Data Structure
     /// </summary>
-    public sealed class ApiKey : IEquatable<ApiKey>
+    public sealed class ApiKey<TExternalId> : IEquatable<ApiKey<TExternalId>>
     {
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ApiKey"/> class.
+        /// Instantiates a new instance of the <see cref="ApiKey{TExternalId}"/> class.
         /// </summary>
         /// <param name="owner"/>
         /// <param name="key"/>
         /// <param name="externalId"/>
         /// <param name="created"/>
         /// <param name="roles"/>
-        public ApiKey(string owner, string key, Guid externalId, DateTime created, IEnumerable<string> roles)
+        public ApiKey(string owner, string key, TExternalId externalId, DateTime created, IEnumerable<string> roles)
             : this(Guid.NewGuid(), owner, key, externalId, created, roles)
         {
         }
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ApiKey"/> class.
+        /// Instantiates a new instance of the <see cref="ApiKey{TExternalId}"/> class.
         /// </summary>
         /// <param name="id"/>
         /// <param name="owner"/>
@@ -49,23 +72,17 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <remarks>
         /// This method should be made internal and used for test purposes or test-data purposes
         /// </remarks>
-        internal ApiKey(Guid id, string owner, string key, Guid externalId, DateTime created, IEnumerable<string> roles)
+        internal ApiKey(Guid id, string owner, string key, TExternalId externalId, DateTime created, IEnumerable<string> roles)
         {
             Id = id;
             Owner = owner ?? string.Empty;
             Key = key ?? string.Empty;
+            ExternalId = externalId;
             Created = created;
 
             var claimsList = new List<string>(roles ?? Array.Empty<string>());
             Roles = new ReadOnlyCollection<string>(claimsList);
         }
-
-        /// <summary>
-        /// Creates a new ApiKey with given id, intended for test data
-        /// </summary>
-        public static ApiKey CreateTestData(Guid id, string owner, string key, Guid externalId, DateTime created,
-            IEnumerable<string> roles) =>
-            new ApiKey(id, owner, key, externalId, created, roles);
 
         /// <summary>
         /// Private Constructor to allow use of Entity Framework
@@ -93,7 +110,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// <summary>
         /// Extenal Id a link to the external identity 
         /// </summary>
-        public Guid ExternalId { get; set; } = Guid.Empty;
+        public TExternalId ExternalId { get; set; } = default!;
 
         /// <summary>
         /// Creation Date/Time of the ApiKey
@@ -108,29 +125,23 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
             new ReadOnlyCollection<string>(new List<string>());
 
         /// <summary>
-        /// Empty Representation
-        /// </summary>
-        public static ApiKey Empty { get; } = new ApiKey();
-
-        /// <summary>
         /// Returns <c>true</c> is ApiKey is empty
         /// </summary>
         public bool IsEmpty => 
             Id == Guid.Empty && string.IsNullOrEmpty(Key);
 
         /// <summary>
-        /// Generates a new api-key
+        /// Empty Representation
         /// </summary>
-        public static string GenerateKey() =>
-            Guid.NewGuid().ToString("N").ToSha256Hash();
+        public static ApiKey<TExternalId> Empty => new ApiKey<TExternalId>();
 
         /// <inheritdoc/>
-        public bool Equals([AllowNull] ApiKey other) =>
+        public bool Equals([AllowNull] ApiKey<TExternalId> other) =>
             !(other is null) && Id.Equals(other.Id);
 
         /// <inheritdoc cref="object.Equals(object?)"/>
         public override bool Equals(object? obj) =>
-            Equals(obj as ApiKey);
+            Equals(obj as ApiKey<TExternalId>);
 
         /// <inheritdoc cref="object.GetHashCode"/>
         public override int GetHashCode() =>

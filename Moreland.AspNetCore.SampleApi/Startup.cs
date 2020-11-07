@@ -11,6 +11,7 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -43,7 +44,7 @@ namespace Moreland.AspNetCore.SampleApi
                     options.DefaultAuthenticateScheme = ApiKeyOptions.DefaultScheme;
                     options.DefaultChallengeScheme = ApiKeyOptions.DefaultScheme;
                 })
-                .AddApiKeySupport();
+                .AddApiKeySupport<Guid>();
 
             services.AddAuthorization(options =>
             {
@@ -69,7 +70,7 @@ namespace Moreland.AspNetCore.SampleApi
                     options.JsonSerializerOptions.AllowTrailingCommas = true;
                 });
 
-            services.AddSingleton<IApiKeyRepository>(provider => new InMemoryApiKeyRepository(TestApiKeys.Keys));
+            services.AddSingleton<IApiKeyRepository<Guid>>(provider => new InMemoryApiKeyRepository<Guid>(TestApiKeys.Keys));
             services.AddSingleton<IAppRepository>(provider => new InMemoryAppRepository(TestApps.Apps));
         }
 

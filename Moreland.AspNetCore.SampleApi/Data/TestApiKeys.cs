@@ -19,7 +19,7 @@ namespace Moreland.AspNetCore.SampleApi.Data
 {
     public static class TestApiKeys
     {
-        public static IEnumerable<ApiKey> Keys
+        public static IEnumerable<ApiKey<Guid>> Keys
         {
             get
             {

@@ -25,15 +25,15 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
     {
         /// <summary>
         /// Returns <c>true</c> if <paramref name="apiKey"/> is null,
-        /// equals <see cref="ApiKey.Empty"/> or its id is an empty
+        /// equals <see cref="ApiKey{TExternalId}.Empty"/> or its id is an empty
         /// GUID
         /// </summary>
-        public static bool IsNullorEmpty(this ApiKey? apiKey) =>
+        public static bool IsNullorEmpty<TExternalId>(this ApiKey<TExternalId>? apiKey) =>
             apiKey == null ||
-            ReferenceEquals(apiKey, ApiKey.Empty) ||
+            ReferenceEquals(apiKey, ApiKey.Empty<TExternalId>()) ||
             apiKey.Id == Guid.Empty;
 
-        public static AuthenticationTicket ToAuthenticationTicket(this ApiKey apiKey, string scheme, string authenticationType)
+        public static AuthenticationTicket ToAuthenticationTicket<TExternalId>(this ApiKey<TExternalId> apiKey, string scheme, string authenticationType)
         {
             if (apiKey.IsNullorEmpty())
                 throw new ArgumentException("Invalid Api-Key", nameof(apiKey));

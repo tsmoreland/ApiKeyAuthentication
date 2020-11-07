@@ -28,7 +28,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
     [Authorize(Policy = "RequiresManage")]
     public class AppManagerController : ControllerBase
     {
-        private readonly IApiKeyRepository _apiKeyRepository;
+        private readonly IApiKeyRepository<Guid> _apiKeyRepository;
         private readonly ILogger<AppManagerController> _logger;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Moreland.AspNetCore.SampleApi.Controllers
         /// <exception cref="ArgumentNullException">
         /// if <paramref name="apiKeyRepository"/> or <paramref name="logger"/> is null
         /// </exception>
-        public AppManagerController(IApiKeyRepository apiKeyRepository, ILogger<AppManagerController> logger)
+        public AppManagerController(IApiKeyRepository<Guid> apiKeyRepository, ILogger<AppManagerController> logger)
         {
             _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

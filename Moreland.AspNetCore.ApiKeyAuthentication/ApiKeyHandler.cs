@@ -25,19 +25,20 @@ using Moreland.AspNetCore.ApiKeyAuthentication.Data;
 
 namespace Moreland.AspNetCore.ApiKeyAuthentication
 {
-    public sealed class ApiKeyHandler : AuthenticationHandler<ApiKeyOptions>
+    internal static class ApiKeyHandler
     {
-        private readonly IApiKeyRepository _repository;
-
-        private static readonly Lazy<JsonSerializerOptions> _serializerOptions = 
+        public static Lazy<JsonSerializerOptions> SerializerOptions { get; } =
             new Lazy<JsonSerializerOptions>(() =>
-                new JsonSerializerOptions 
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase, 
-                    IgnoreNullValues = true
-                });
+                new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase, IgnoreNullValues = true});
+    }
 
-        private static JsonSerializerOptions SerializerOptions => _serializerOptions.Value;
+
+    public sealed class ApiKeyHandler<TExternalId> : AuthenticationHandler<ApiKeyOptions>
+    {
+        private readonly IApiKeyRepository<TExternalId> _repository;
+
+
+        private static JsonSerializerOptions SerializerOptions => ApiKeyHandler.SerializerOptions.Value;
 
         /// <inheritdoc cref="AuthenticationHandler{ApiKeyOptions}"/>
         /// <exception cref="ArgumentNullException">
@@ -48,7 +49,7 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
             ILoggerFactory logger,
             UrlEncoder urlEncoder,
             ISystemClock systemClock,
-            IApiKeyRepository repository)
+            IApiKeyRepository<TExternalId> repository)
             : base(options, logger, urlEncoder, systemClock)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));

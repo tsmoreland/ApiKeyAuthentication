@@ -25,31 +25,31 @@ namespace Moreland.AspNetCore.ApiKeyAuthentication
         /// Add Api-Key support with default scheme and empty display name 
         /// and empty options
         /// </summary>
-        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder builder) =>
-            builder.AddApiKeySupport(ApiKeyDefaults.AuthenticationScheme, displayName: null, options => { });
+        public static AuthenticationBuilder AddApiKeySupport<TExternalId>(this AuthenticationBuilder builder) =>
+            builder.AddApiKeySupport<TExternalId>(ApiKeyDefaults.AuthenticationScheme, displayName: null, options => { });
 
         /// <summary>
         /// Add Api-Key support with default scheme and empty display name using
         /// provided <paramref name="options"/>
         /// </summary>
-        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder builder,
+        public static AuthenticationBuilder AddApiKeySupport<TExternalId>(this AuthenticationBuilder builder,
             Action<ApiKeyOptions> options) =>
-            builder.AddApiKeySupport(ApiKeyDefaults.AuthenticationScheme, displayName: null, options);
+            builder.AddApiKeySupport<TExternalId>(ApiKeyDefaults.AuthenticationScheme, displayName: null, options);
 
         /// <summary>
         /// Add Api-Key support with empty display name using
         /// provided <paramref name="scheme"/> and <paramref name="options"/>
         /// </summary>
-        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder builder,
+        public static AuthenticationBuilder AddApiKeySupport<TExternalId>(this AuthenticationBuilder builder,
             string scheme, Action<ApiKeyOptions> options) =>
-            builder.AddApiKeySupport(scheme, displayName: null, options);
+            builder.AddApiKeySupport<TExternalId>(scheme, displayName: null, options);
 
         /// <summary>
         /// Add Api-Key support provided <paramref name="scheme"/>,
         /// <paramref name="displayName"/> and <paramref name="options"/>
         /// </summary>
-        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder builder, 
+        public static AuthenticationBuilder AddApiKeySupport<TExternalId>(this AuthenticationBuilder builder, 
             string scheme, string? displayName, Action<ApiKeyOptions> options) =>
-            builder.AddScheme<ApiKeyOptions, ApiKeyHandler>(scheme, displayName, options);
+            builder.AddScheme<ApiKeyOptions, ApiKeyHandler<TExternalId>>(scheme, displayName, options);
     }
 }
