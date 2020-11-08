@@ -48,6 +48,30 @@ namespace Moreland.AspNetCore.SampleApi
 
             services.AddAuthorization(options =>
             {
+                options.AddPolicy("AppUser", 
+                    policy =>
+                    {
+                        policy.Requirements.Add(new AppGroupRequirement());
+                        policy.Requirements.Add(new UserRoleRequirement());
+                    });
+                options.AddPolicy("ApiKeyViewer", 
+                    policy =>
+                    {
+                        policy.Requirements.Add(new ApiKeyGroupRequirement());
+                        policy.Requirements.Add(new ViewerRoleRequirement());
+                    });
+                options.AddPolicy("AppManager", 
+                    policy =>
+                    {
+                        policy.Requirements.Add(new AppGroupRequirement());
+                        policy.Requirements.Add(new ManagerRoleRequirement());
+                    });
+                options.AddPolicy("ApiKeyManager", 
+                    policy =>
+                    {
+                        policy.Requirements.Add(new ApiKeyGroupRequirement());
+                        policy.Requirements.Add(new ManagerRoleRequirement());
+                    });
                 options.AddPolicy("RequiresManage", 
                     policy => policy.Requirements.Add(new ManageRequirement()));
                 options.AddPolicy("CrudManager",
@@ -60,6 +84,10 @@ namespace Moreland.AspNetCore.SampleApi
             });
             services.AddSingleton<IAuthorizationHandler, RequiresManageAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, RequiresCreateAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, ManagerRoleAuhorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, UserRoleAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, ViewerRoleAuthorizationHandler>();
+
 
             services
                 .AddControllers()

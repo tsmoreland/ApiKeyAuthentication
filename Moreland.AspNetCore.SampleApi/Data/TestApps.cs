@@ -30,7 +30,7 @@ namespace Moreland.AspNetCore.SampleApi.Data
                     new[] { ToPair("group", "app"), ToPair(ClaimTypes.Role, "manager")});
 
                 yield return App.CreateTestData(new Guid("FF15FCE1-1512-44C0-894B-5A5980F35185"), "Charlie",
-                    new[] { ToPair("group", "api-key"), ToPair(ClaimTypes.Role, "user")});
+                    new[] { ToPair("group", "api-key"), ToPair(ClaimTypes.Role, "viewer")});
                 yield return App.CreateTestData(new Guid("B8EF9F7A-35FA-4D25-8FFE-1157CC9A4F70"), "Delta",
                     new[] { ToPair("group", "app"), ToPair(ClaimTypes.Role, "user")});
             }
