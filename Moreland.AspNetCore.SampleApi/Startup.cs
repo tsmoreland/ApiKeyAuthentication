@@ -13,6 +13,7 @@
 
 using System;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moreland.AspNetCore.ApiKeyAuthentication;
 using Moreland.AspNetCore.ApiKeyAuthentication.Data;
+using Moreland.AspNetCore.SampleApi.Authentication;
 using Moreland.AspNetCore.SampleApi.Authorization;
 using Moreland.AspNetCore.SampleApi.Data;
 
@@ -100,6 +102,8 @@ namespace Moreland.AspNetCore.SampleApi
 
             services.AddSingleton<IApiKeyRepository<Guid>>(provider => new InMemoryApiKeyRepository<Guid>(TestApiKeys.Keys));
             services.AddSingleton<IAppRepository>(provider => new InMemoryAppRepository(TestApps.Apps));
+
+            services.AddSingleton<IClaimsTransformation, ApiKeyToUserClaimsTransformation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
